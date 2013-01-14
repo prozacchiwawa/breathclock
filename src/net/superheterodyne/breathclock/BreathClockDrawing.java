@@ -282,7 +282,7 @@ public class BreathClockDrawing {
                         double dx = toward.x - target.x;
                         double dy = toward.y - target.y;
                         double dist = Math.sqrt((dx * dx) + (dy * dy));
-                        double step = dist / 5.0f;
+                        double step = dist / 10.0f;
                         momentum = new PointF((float)((toward.x - target.x) / step), (float)((toward.y - target.y) / step));
                         steps = (int)step;
                     }
@@ -298,8 +298,8 @@ public class BreathClockDrawing {
 //                    c.drawLine(target.x, target.y, toward.x, toward.y, pa);
 //                    c.drawRect(new Rect((int) target.x, (int) target.y, (int) target.x + 5, (int) target.y + 5), pclear);
 //                    c.drawText(timeText, (float)originalImage.getWidth() / 2.0f, (float)originalImage.getHeight() / 2.0f, pclear);
-                target.x += /*(2.0f * random.nextFloat() * momentum.x) -*/ momentum.x;
-                target.y += /*(2.0f * random.nextFloat() * momentum.y) -*/ momentum.y;
+                target.x += (2.0f * random.nextFloat() * momentum.x);
+                target.y += (2.0f * random.nextFloat() * momentum.y);
                 steps--;
             }
         }
