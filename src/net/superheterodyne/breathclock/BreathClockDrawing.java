@@ -195,6 +195,7 @@ public class BreathClockDrawing {
 
     class GenerateFrostImage implements Runnable
     {
+        int whiteReplaceSteps;
         PointF target = null, toward = null, momentum = null;
         int steps;
         ArrayList<PointF> currentPath = new ArrayList<PointF>();
@@ -208,7 +209,7 @@ public class BreathClockDrawing {
 
         public void setTime(String timeString) {
             currentPath.clear();
-            RectF stringRect = new RectF(0, 0, width * 5.0f / 6.0f, height / 3.0f);
+            RectF stringRect = new RectF(0, 0, width * 5.0f / 6.0f, height / 4.0f);
             stringRect.offset((originalImage.getWidth() - stringRect.width()) / 2, (originalImage.getHeight() - stringRect.height()) / 2);
             float w = stringRect.width() / timeString.length();
             RectF charRect = new RectF(stringRect.left, stringRect.top, stringRect.left + (stringRect.width() / ((timeString.length() * 3) / 2)), stringRect.top + stringRect.height());
@@ -241,6 +242,12 @@ public class BreathClockDrawing {
                 c.drawBitmap(whiteImage, 0, 0, pfrost);
                 pfrost.setAlpha(1);
                 c.drawBitmap(frostImage, x, y, pfrost);
+                if (whiteReplaceSteps < 100) {
+                    whiteReplaceSteps++;
+                    if (whiteReplaceSteps == 100)
+                        whiteImage = frostImage.copy(Bitmap.Config.ARGB_8888, false);
+                    return;
+                }
             }
 
             if (xoff == -1 || yoff == -1)
@@ -267,7 +274,7 @@ public class BreathClockDrawing {
                     pm = false;
                     hour = currentDate.getHours();
                 }
-                timeText = "" + hour + ":" + String.format("%02d", currentDate.getMinutes()) + ":" + String.format("%02d", currentDate.getSeconds()) + (pm ? "PM" : "AM");
+                timeText = "" + hour + ":" + String.format("%02d", currentDate.getMinutes()) + ":" + String.format("%02d", currentDate.getSeconds()) + (pm ? "P" : "A");
                 setTime(timeText);
             }
             if (target == null || steps == 0) {
@@ -298,8 +305,8 @@ public class BreathClockDrawing {
 //                    c.drawLine(target.x, target.y, toward.x, toward.y, pa);
 //                    c.drawRect(new Rect((int) target.x, (int) target.y, (int) target.x + 5, (int) target.y + 5), pclear);
 //                    c.drawText(timeText, (float)originalImage.getWidth() / 2.0f, (float)originalImage.getHeight() / 2.0f, pclear);
-                target.x += (2.0f * random.nextFloat() * momentum.x);
-                target.y += (2.0f * random.nextFloat() * momentum.y);
+                target.x += /*(2.0f * random.nextFloat() */ momentum.x;
+                target.y += /*(2.0f * random.nextFloat() */ momentum.y;
                 steps--;
             }
         }
@@ -331,6 +338,7 @@ public class BreathClockDrawing {
     public void onTouchEvent(SurfaceHolder holder, MotionEvent event) {
         if (xoff != -1 && yoff != -1) {
             target = new PointF(event.getX() + xoff, event.getY() + yoff);
+
         }
     }
 
