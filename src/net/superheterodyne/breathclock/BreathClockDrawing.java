@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.*;
 import android.graphics.drawable.Drawable;
+import android.os.DropBoxManager;
 import android.service.wallpaper.WallpaperService;
 import android.view.SurfaceHolder;
 import android.view.MotionEvent;
@@ -24,10 +25,10 @@ import android.os.Handler;
 public class BreathClockDrawing {
     private final Handler handler = new Handler();
 
-    class Drip extends Point {
-        public boolean active;
-        public boolean impotice;
-    }
+    static final int refreshTime = 100; // ms
+    static final int lagUntilResetTime = 500; // ms
+    static final int fingerWidth = 17;
+    static final int userFinger = 25;
 
     Context context;
     Bitmap frostImage;
@@ -39,135 +40,8 @@ public class BreathClockDrawing {
     SurfaceHolder holder;
     PointF target;
     int width, height, xoff, yoff;
-    int kernel_size = 5;
-    float []frostKernel = new float[100];
     GenerateFrostImage genImage;
     Runnable drawRunner;
-    float [][][]drawPath = new float[][][] {
-            { // 0
-                    { -0.5f, -0.5f },
-                    {  0.5f, -0.5f },
-                    {  0.5f,  0.5f },
-                    { -0.5f,  0.5f },
-                    { -0.5f, -0.5f }
-            },
-            { // 1
-                    { -0.1f, -0.4f },
-                    {  0.0f, -0.5f },
-                    {  0.0f,  0.5f },
-                    null,
-                    { -0.5f,  0.5f },
-                    {  0.5f,  0.5f },
-            },
-            { // 2
-                    { -0.5f, -0.5f },
-                    {  0.5f, -0.5f },
-                    {  0.5f,  0.0f },
-                    { -0.5f,  0.0f },
-                    { -0.5f,  0.5f },
-                    {  0.5f,  0.5f }
-            },
-            { // 3
-                    { -0.5f, -0.5f },
-                    {  0.5f, -0.5f },
-                    {  0.5f,  0.5f },
-                    { -0.5f,  0.5f },
-                    null,
-                    { -0.5f,  0.0f },
-                    {  0.5f,  0.0f },
-            },
-            { // 4
-                    { -0.5f, -0.5f },
-                    { -0.5f,  0.0f },
-                    {  0.5f,  0.0f },
-                    null,
-                    {  0.2f, -0.1f },
-                    {  0.2f,  0.5f }
-            },
-            { // 5
-                    {  0.5f, -0.5f },
-                    { -0.5f, -0.5f },
-                    { -0.5f,  0.0f },
-                    {  0.5f,  0.0f },
-                    {  0.5f,  0.5f },
-                    { -0.5f,  0.5f }
-            },
-            { // 6
-                    {  0.5f, -0.5f },
-                    { -0.5f, -0.5f },
-                    { -0.5f,  0.5f },
-                    {  0.5f,  0.5f },
-                    {  0.5f,  0.0f },
-                    { -0.5f,  0.0f }
-            },
-            { // 7
-                    { -0.5f, -0.5f },
-                    {  0.5f, -0.5f },
-                    {  0.0f,  0.5f }
-            },
-            { // 8
-                    { -0.5f, -0.5f },
-                    {  0.5f, -0.5f },
-                    { -0.5f,  0.5f },
-                    {  0.5f,  0.5f },
-                    { -0.5f, -0.5f }
-            },
-            { // 9
-                    {  0.5f,  0.0f },
-                    { -0.5f,  0.0f },
-                    { -0.5f, -0.5f },
-                    {  0.5f, -0.5f },
-                    {  0.5f,  0.5f },
-                    { -0.5f,  0.5f }
-            },
-            { // :
-                    {  0.0f, -0.25f },
-                    null,
-                    {  0.0f,  0.25f }
-            },
-            { // A
-                    { -0.5f,  0.5f },
-                    {  0.0f, -0.5f },
-                    {  0.5f,  0.5f },
-                    null,
-                    { -0.25f, 0.0f },
-                    {  0.25f, 0.0f }
-            },
-            { // P
-                    { -0.5f,  0.5f },
-                    { -0.5f, -0.5f },
-                    {  0.5f, -0.5f },
-                    {  0.5f,  0.0f },
-                    { -0.5f,  0.0f }
-            },
-            { // M
-                    { -0.5f,  0.5f },
-                    { -0.25f,-0.5f },
-                    {  0.0f,  0.5f },
-                    {  0.25f,-0.5f },
-                    {  0.5f,  0.5f }
-            },
-            { // ' '
-
-            },
-            { // ...
-                    { -0.3f,  0.5f },
-                    null,
-                    {  0.0f,  0.5f },
-                    null,
-                    {  0.3f,  0.5f }
-            }
-    };
-
-    int getCharOffset(char ch) {
-        String chars = "0123456789:APM ";
-        int idx = chars.indexOf(ch);
-        if (idx == -1)
-            return chars.length();
-        else
-            return idx;
-    }
-
     public BreathClockDrawing(Context context) {
         this.context = context;
         SharedPreferences prefs = PreferenceManager
@@ -195,6 +69,139 @@ public class BreathClockDrawing {
 
     class GenerateFrostImage implements Runnable
     {
+        class Drip extends Point {
+            public boolean active;
+            public Drip(int x, int y) {
+                super(x, y);
+            }
+        }
+
+        ArrayList<Drip> drips = new ArrayList<Drip>();
+        float [][][]drawPath = new float[][][] {
+                { // 0
+                        { -0.5f, -0.5f },
+                        {  0.5f, -0.5f },
+                        {  0.5f,  0.5f },
+                        { -0.5f,  0.5f },
+                        { -0.5f, -0.5f }
+                },
+                { // 1
+                        { -0.1f, -0.4f },
+                        {  0.0f, -0.5f },
+                        {  0.0f,  0.5f },
+                        null,
+                        { -0.5f,  0.5f },
+                        {  0.5f,  0.5f },
+                },
+                { // 2
+                        { -0.5f, -0.5f },
+                        {  0.5f, -0.5f },
+                        {  0.5f,  0.0f },
+                        { -0.5f,  0.0f },
+                        { -0.5f,  0.5f },
+                        {  0.5f,  0.5f }
+                },
+                { // 3
+                        { -0.5f, -0.5f },
+                        {  0.5f, -0.5f },
+                        {  0.5f,  0.5f },
+                        { -0.5f,  0.5f },
+                        null,
+                        { -0.5f,  0.0f },
+                        {  0.5f,  0.0f },
+                },
+                { // 4
+                        { -0.5f, -0.5f },
+                        { -0.5f,  0.0f },
+                        {  0.5f,  0.0f },
+                        null,
+                        {  0.2f, -0.1f },
+                        {  0.2f,  0.5f }
+                },
+                { // 5
+                        {  0.5f, -0.5f },
+                        { -0.5f, -0.5f },
+                        { -0.5f,  0.0f },
+                        {  0.5f,  0.0f },
+                        {  0.5f,  0.5f },
+                        { -0.5f,  0.5f }
+                },
+                { // 6
+                        {  0.5f, -0.5f },
+                        { -0.5f, -0.5f },
+                        { -0.5f,  0.5f },
+                        {  0.5f,  0.5f },
+                        {  0.5f,  0.0f },
+                        { -0.5f,  0.0f }
+                },
+                { // 7
+                        { -0.5f, -0.5f },
+                        {  0.5f, -0.5f },
+                        {  0.0f,  0.5f }
+                },
+                { // 8
+                        { -0.5f, -0.5f },
+                        {  0.5f, -0.5f },
+                        { -0.5f,  0.5f },
+                        {  0.5f,  0.5f },
+                        { -0.5f, -0.5f }
+                },
+                { // 9
+                        {  0.5f,  0.0f },
+                        { -0.5f,  0.0f },
+                        { -0.5f, -0.5f },
+                        {  0.5f, -0.5f },
+                        {  0.5f,  0.5f },
+                        { -0.5f,  0.5f }
+                },
+                { // :
+                        {  0.0f, -0.25f },
+                        null,
+                        {  0.0f,  0.25f }
+                },
+                { // A
+                        { -0.5f,  0.5f },
+                        {  0.0f, -0.5f },
+                        {  0.5f,  0.5f },
+                        null,
+                        { -0.25f, 0.0f },
+                        {  0.25f, 0.0f }
+                },
+                { // P
+                        { -0.5f,  0.5f },
+                        { -0.5f, -0.5f },
+                        {  0.5f, -0.5f },
+                        {  0.5f,  0.0f },
+                        { -0.5f,  0.0f }
+                },
+                { // M
+                        { -0.5f,  0.5f },
+                        { -0.25f,-0.5f },
+                        {  0.0f,  0.5f },
+                        {  0.25f,-0.5f },
+                        {  0.5f,  0.5f }
+                },
+                { // ' '
+
+                },
+                { // ...
+                        { -0.3f,  0.5f },
+                        null,
+                        {  0.0f,  0.5f },
+                        null,
+                        {  0.3f,  0.5f }
+                }
+        };
+
+        int getCharOffset(char ch) {
+            String chars = "0123456789:APM ";
+            int idx = chars.indexOf(ch);
+            if (idx == -1)
+                return chars.length();
+            else
+                return idx;
+        }
+
         int whiteReplaceSteps;
         PointF target = null, toward = null, momentum = null;
         int steps;
@@ -202,9 +209,41 @@ public class BreathClockDrawing {
         PointF where;
         String timeText = "waiting...";
         Canvas c = new Canvas();
+        long drawnLast = System.currentTimeMillis();
 
         public GenerateFrostImage() {
             c.setBitmap(frostImage);
+        }
+
+        void fingerOnWindow(PointF target, int fingerWidth, Paint pclear) {
+            Rect transferRect =
+                    new Rect((int) target.x, (int) target.y, (int) target.x + fingerWidth, (int) target.y + fingerWidth);
+            pclear.setAlpha(255);
+            c.drawBitmap(originalImage, transferRect, transferRect, pclear);
+            if (random.nextInt(50) == 0) {
+                drips.add(new Drip((int)target.x, (int)target.y));
+            }
+        }
+
+        void refreshDatePath(long currentTime) {
+            Date currentDate = new Date(currentTime);
+            int hour;
+            boolean pm = false;
+            if (currentDate.getHours() > 12) {
+                pm = true;
+                hour = currentDate.getHours() - 12;
+            } else if (currentDate.getHours() == 12) {
+                pm = true;
+                hour = 12;
+            } else if (currentDate.getHours() == 0) {
+                pm = false;
+                hour = 12;
+            } else {
+                pm = false;
+                hour = currentDate.getHours();
+            }
+            timeText = "" + hour + ":" + String.format("%02d", currentDate.getMinutes()) + ":" + String.format("%02d", currentDate.getSeconds()) + (pm ? "P" : "A");
+            setTime(timeText);
         }
 
         public void setTime(String timeString) {
@@ -229,54 +268,36 @@ public class BreathClockDrawing {
         }
 
         public void run() {
-            Paint pfrost = new Paint(), pclear = new Paint(), pa = new Paint();
-            pfrost.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
-            pfrost.setShader(new BitmapShader(originalImage, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
+            Paint pclear = new Paint();
             pclear.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
             pclear.setShader(new BitmapShader(originalImage, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
 
-            for (int i = 0; !Thread.currentThread().isInterrupted() && steps % 10 == 0 && i < 1; i++) {
-                int x = random.nextInt(10) - 5;
-                int y = random.nextInt(10) - 5;
-                pfrost.setAlpha(3);
-                c.drawBitmap(whiteImage, 0, 0, pfrost);
-                pfrost.setAlpha(1);
-                c.drawBitmap(frostImage, x, y, pfrost);
-                if (whiteReplaceSteps < 100) {
-                    whiteReplaceSteps++;
-                    if (whiteReplaceSteps == 100)
-                        whiteImage = frostImage.copy(Bitmap.Config.ARGB_8888, false);
-                    return;
-                }
+            int x = random.nextInt(10) - 5;
+            int y = random.nextInt(10) - 5;
+            pclear.setAlpha(3);
+            c.drawBitmap(whiteImage, 0, 0, pclear);
+            pclear.setAlpha(1);
+            c.drawBitmap(frostImage, x, y, pclear);
+            if (whiteReplaceSteps < 75) {
+                whiteReplaceSteps++;
+                if (whiteReplaceSteps == 75)
+                    whiteImage = frostImage.copy(Bitmap.Config.ARGB_8888, false);
+                return;
             }
 
             if (xoff == -1 || yoff == -1)
                 return;
 
-            if (currentPath.size() == 0) {
+            long currentTime = System.currentTimeMillis();
+
+            if (currentPath.size() == 0 || currentTime - drawnLast > lagUntilResetTime) {
                 steps = 0;
                 target = null;
                 toward = null;
                 momentum = null;
-                Date currentDate = new Date(System.currentTimeMillis());
-                int hour;
-                boolean pm = false;
-                if (currentDate.getHours() > 12) {
-                    pm = true;
-                    hour = currentDate.getHours() - 12;
-                } else if (currentDate.getHours() == 12) {
-                    pm = true;
-                    hour = 12;
-                } else if (currentDate.getHours() == 0) {
-                    pm = false;
-                    hour = 12;
-                } else {
-                    pm = false;
-                    hour = currentDate.getHours();
-                }
-                timeText = "" + hour + ":" + String.format("%02d", currentDate.getMinutes()) + ":" + String.format("%02d", currentDate.getSeconds()) + (pm ? "P" : "A");
-                setTime(timeText);
+                refreshDatePath(currentTime);
             }
+            drawnLast = currentTime;
             if (target == null || steps == 0) {
                 target = currentPath.get(0);
                 currentPath.remove(0);
@@ -295,19 +316,21 @@ public class BreathClockDrawing {
                     }
                 }
             } else {
-                pclear.setAlpha(255);
-                c.drawBitmap
-                        (originalImage,
-                                new Rect((int) target.x, (int) target.y, (int) target.x + 20, (int) target.y + 20),
-                                new Rect((int) target.x, (int) target.y, (int) target.x + 20, (int) target.y + 20), pclear);
-//                    pa.setStrokeWidth(5.0f);
-//                    pa.setColor(Color.RED);
-//                    c.drawLine(target.x, target.y, toward.x, toward.y, pa);
-//                    c.drawRect(new Rect((int) target.x, (int) target.y, (int) target.x + 5, (int) target.y + 5), pclear);
-//                    c.drawText(timeText, (float)originalImage.getWidth() / 2.0f, (float)originalImage.getHeight() / 2.0f, pclear);
-                target.x += /*(2.0f * random.nextFloat() */ momentum.x;
-                target.y += /*(2.0f * random.nextFloat() */ momentum.y;
+                target.x += momentum.x;
+                target.y += momentum.y;
                 steps--;
+                fingerOnWindow(target, fingerWidth, pclear);
+            }
+
+            for (int i = 0; i < drips.size(); i++) {
+                Drip d = drips.get(i);
+                if (random.nextInt(height / 3) == 0) {
+                    drips.remove(i--);
+                    continue;
+                }
+                d.y += random.nextInt(6);
+                int size = 10 - d.y;
+                fingerOnWindow(new PointF(d.x, d.y), size, pclear);
             }
         }
 
@@ -336,9 +359,12 @@ public class BreathClockDrawing {
     }
 
     public void onTouchEvent(SurfaceHolder holder, MotionEvent event) {
-        if (xoff != -1 && yoff != -1) {
-            target = new PointF(event.getX() + xoff, event.getY() + yoff);
-
+        if (touchEnabled && xoff != -1 && yoff != -1) {
+            PointF target = new PointF(event.getX() + xoff, event.getY() + yoff);
+            Paint pclear = new Paint();
+            pclear.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OVER));
+            pclear.setShader(new BitmapShader(originalImage, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
+            genImage.fingerOnWindow(target, userFinger, pclear);
         }
     }
 
@@ -362,7 +388,7 @@ public class BreathClockDrawing {
         }
         handler.removeCallbacks(drawRunner);
         if (visible) {
-            handler.postDelayed(drawRunner, 100);
+            handler.postDelayed(drawRunner, refreshTime);
         }
     }
 }
