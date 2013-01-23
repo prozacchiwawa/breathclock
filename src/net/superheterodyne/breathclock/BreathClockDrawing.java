@@ -26,7 +26,7 @@ public class BreathClockDrawing {
     private final Handler handler = new Handler();
 
     static final int refreshTime = 100; // ms
-    static final int lagUntilResetTime = 500; // ms
+    static final int lagUntilResetTime = 10000; // ms
     static final int fingerWidth = 17;
     static final int userFinger = 25;
 
