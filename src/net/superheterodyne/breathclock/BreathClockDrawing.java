@@ -69,117 +69,186 @@ public class BreathClockDrawing {
 
     class GenerateFrostImage implements Runnable
     {
-        class Drip extends Point {
-            public boolean active;
-            public Drip(int x, int y) {
-                super(x, y);
-            }
-        }
-
-        ArrayList<Drip> drips = new ArrayList<Drip>();
         float [][][]drawPath = new float[][][] {
                 { // 0
-                        { -0.5f, -0.5f },
-                        {  0.5f, -0.5f },
-                        {  0.5f,  0.5f },
-                        { -0.5f,  0.5f },
-                        { -0.5f, -0.5f }
+					{ 40f, 5f },
+					{ 53f, 8f },
+					{ 62f, 21f },
+					{ 67f, 50f },
+					{ 62f, 79f },
+					{ 53f, 82f },
+					{ 40f, 95f },
+					{ 27f, 82f },
+					{ 18f, 79f },
+					{ 13f, 50f },
+					{ 18f, 21f },
+					{ 27f, 8f },
+					{ 40f, 5f }
                 },
                 { // 1
-                        { -0.1f, -0.4f },
-                        {  0.0f, -0.5f },
-                        {  0.0f,  0.5f },
-                        null,
-                        { -0.5f,  0.5f },
-                        {  0.5f,  0.5f },
+					{ 40f, 10f },
+					{ 50f, 0f },
+					{ 50f, 100f },
+					null,
+					{ 0f, 100f },
+					{ 100f, 100f },
                 },
                 { // 2
-                        { -0.5f, -0.5f },
-                        {  0.5f, -0.5f },
-                        {  0.5f,  0.0f },
-                        { -0.5f,  0.0f },
-                        { -0.5f,  0.5f },
-                        {  0.5f,  0.5f }
+					{ 10f, 26f },
+					{ 14f, 14f },
+					{ 25f, 6f },
+					{ 36f, 5f },
+					{ 50f, 9f },
+					{ 59f, 17f },
+					{ 62f, 28f },
+					{ 59f, 42f },
+					{ 44f, 58f },
+					{ 18f, 83f },
+					{ 8f, 100f },
+					{ 65f, 100f },
                 },
                 { // 3
-                        { -0.5f, -0.5f },
-                        {  0.5f, -0.5f },
-                        {  0.5f,  0.5f },
-                        { -0.5f,  0.5f },
-                        null,
-                        { -0.5f,  0.0f },
-                        {  0.5f,  0.0f },
+					{ 7f, 22f },
+					{ 15f, 11f },
+					{ 28f, 6f },
+					{ 38f, 6f },
+					{ 50f, 13f },
+					{ 56f, 27f },
+					{ 50f, 40f },
+					{ 40f, 47f },
+					{ 29f, 50f },
+					{ 43f, 51f },
+					{ 56f, 60f },
+					{ 60f, 74f },
+					{ 57f, 87f },
+					{ 45f, 99f },
+					{ 32f, 101f },
+					{ 16f, 97f },
+					{ 9f, 88f },
+					{ 6f, 82f },
                 },
                 { // 4
-                        { -0.5f, -0.5f },
-                        { -0.5f,  0.0f },
-                        {  0.5f,  0.0f },
-                        null,
-                        {  0.2f, -0.1f },
-                        {  0.2f,  0.5f }
+					{ 67f, 74f },
+					{ 6f, 74f },
+					{ 53f, 6f },
+					{ 53f, 100f },
                 },
                 { // 5
-                        {  0.5f, -0.5f },
-                        { -0.5f, -0.5f },
-                        { -0.5f,  0.0f },
-                        {  0.5f,  0.0f },
-                        {  0.5f,  0.5f },
-                        { -0.5f,  0.5f }
+					{ 62f, 8f },
+					{ 20f, 8f },
+					{ 10f, 52f },
+					{ 24f, 44f },
+					{ 38f, 41f },
+					{ 53f, 47f },
+					{ 62f, 59f },
+					{ 64f, 71f },
+					{ 59f, 87f },
+					{ 49f, 97f },
+					{ 35f, 102f },
+					{ 19f, 97f },
+					{ 9f, 82f },
                 },
                 { // 6
-                        {  0.5f, -0.5f },
-                        { -0.5f, -0.5f },
-                        { -0.5f,  0.5f },
-                        {  0.5f,  0.5f },
-                        {  0.5f,  0.0f },
-                        { -0.5f,  0.0f }
+					{ 62f, 22f },
+					{ 56f, 12f },
+					{ 39f, 6f },
+					{ 25f, 8f },
+					{ 15f, 20f },
+					{ 9f, 42f },
+					{ 10f, 74f },
+					{ 15f, 89f },
+					{ 25f, 98f },
+					{ 38f, 102f },
+					{ 51f, 98f },
+					{ 59f, 89f },
+					{ 64f, 71f },
+					{ 60f, 53f },
+					{ 50f, 46f },
+					{ 39f, 43f },
+					{ 24f, 48f },
+					{ 16f, 56f },
+					{ 10f, 65f },
                 },
                 { // 7
-                        { -0.5f, -0.5f },
-                        {  0.5f, -0.5f },
-                        {  0.0f,  0.5f }
+					{ 6f, 8f },
+					{ 64f, 8f },
+					{ 53f, 24f },
+					{ 39f, 47f },
+					{ 30f, 70f },
+					{ 26f, 87f },
+					{ 24f, 100f },
                 },
                 { // 8
-                        { -0.5f, -0.5f },
-                        {  0.5f, -0.5f },
-                        { -0.5f,  0.5f },
-                        {  0.5f,  0.5f },
-                        { -0.5f, -0.5f }
+					{ 34f, 4f },
+					{ 49f, 10f },
+					{ 57f, 20f },
+					{ 57f, 33f },
+					{ 50f, 43f },
+					{ 34f, 48f },
+					{ 17f, 54f },
+					{ 9f, 64f },
+					{ 7f, 74f },
+					{ 10f, 88f },
+					{ 21f, 98f },
+					{ 34f, 102f },
+					{ 49f, 98f },
+					{ 58f, 88f },
+					{ 62f, 76f },
+					{ 60f, 64f },
+					{ 52f, 56f },
+					{ 34f, 48f },
+					{ 20f, 43f },
+					{ 12f, 33f },
+					{ 10f, 26f },
+					{ 14f, 16f },
+					{ 24f, 7f },
+					{ 34f, 4f },
                 },
                 { // 9
-                        {  0.5f,  0.0f },
-                        { -0.5f,  0.0f },
-                        { -0.5f, -0.5f },
-                        {  0.5f, -0.5f },
-                        {  0.5f,  0.5f },
-                        { -0.5f,  0.5f }
+					{ 11f, 85f },
+					{ 18f, 97f },
+					{ 33f, 102f },
+					{ 48f, 96f },
+					{ 57f, 85f },
+					{ 63f, 69f },
+					{ 63f, 34f },
+					{ 57f, 17f },
+					{ 48f, 8f },
+					{ 36f, 5f },
+					{ 21f, 9f },
+					{ 13f, 17f },
+					{ 9f, 25f },
+					{ 8f, 36f },
+					{ 11f, 50f },
+					{ 14f, 55f },
+					{ 23f, 60f },
+					{ 35f, 64f },
+					{ 47f, 60f },
+					{ 58f, 49f },
+					{ 63f, 34f }
                 },
                 { // :
-                        {  0.0f, -0.25f },
-                        null,
-                        {  0.0f,  0.25f }
+					{  0.0f, -0.25f },
+					null,
+					{  0.0f,  0.25f }
                 },
                 { // A
-                        { -0.5f,  0.5f },
-                        {  0.0f, -0.5f },
-                        {  0.5f,  0.5f },
-                        null,
-                        { -0.25f, 0.0f },
-                        {  0.25f, 0.0f }
+					{ 0f,  100f },
+					{ 50f, 0f },
+					{ 100f, 100f },
+					null,
+					{ 25f, 50f },
+					{ 75f, 50f }
                 },
                 { // P
-                        { -0.5f,  0.5f },
-                        { -0.5f, -0.5f },
-                        {  0.5f, -0.5f },
-                        {  0.5f,  0.0f },
-                        { -0.5f,  0.0f }
-                },
-                { // M
-                        { -0.5f,  0.5f },
-                        { -0.25f,-0.5f },
-                        {  0.0f,  0.5f },
-                        {  0.25f,-0.5f },
-                        {  0.5f,  0.5f }
+					{ 8f, 40f },
+					{ 8f, 7f },
+					{ 21f, 8f },
+					{ 24f, 10f },
+					{ 26f, 15f },
+					{ 24f, 22f },
+					{ 19f, 25f },
+					{ 8f, 26f },
                 },
                 { // ' '
 
@@ -213,6 +282,28 @@ public class BreathClockDrawing {
 
         public GenerateFrostImage() {
             c.setBitmap(frostImage);
+            // Normalize digit space
+            for (int i = 0; i < drawPath.length; i++) {
+                if (drawPath[i].length == 0)
+                    continue;
+                float lowx = drawPath[i][0][0], highx = drawPath[i][0][0], lowy = drawPath[i][0][1], highy = drawPath[i][0][1];
+                for (int j = 1; j < drawPath[i].length; j++) {
+                    if (drawPath[i][j] == null)
+                        continue;
+                    lowx = Math.min(lowx, drawPath[i][j][0]);
+                    highx = Math.max(highx, drawPath[i][j][0]);
+                    lowy = Math.min(lowy, drawPath[i][j][1]);
+                    highy = Math.max(highy, drawPath[i][j][1]);
+                }
+                float scalex = highx - lowx;
+                float scaley = highy - lowy;
+                for (int j = 0; j < drawPath[i].length; j++) {
+                    if (drawPath[i][j] == null)
+                        continue;
+                    drawPath[i][j][0] = (drawPath[i][j][0] / scalex) - 0.5f;
+                    drawPath[i][j][1] = (drawPath[i][j][1] / scaley) - 0.5f;
+                }
+            }
         }
 
         void fingerOnWindow(PointF target, int fingerWidth, Paint pclear) {
@@ -220,9 +311,6 @@ public class BreathClockDrawing {
                     new Rect((int) target.x, (int) target.y, (int) target.x + fingerWidth, (int) target.y + fingerWidth);
             pclear.setAlpha(255);
             c.drawBitmap(originalImage, transferRect, transferRect, pclear);
-            if (random.nextInt(50) == 0) {
-                drips.add(new Drip((int)target.x, (int)target.y));
-            }
         }
 
         void refreshDatePath(long currentTime) {
@@ -320,17 +408,6 @@ public class BreathClockDrawing {
                 target.y += momentum.y;
                 steps--;
                 fingerOnWindow(target, fingerWidth, pclear);
-            }
-
-            for (int i = 0; i < drips.size(); i++) {
-                Drip d = drips.get(i);
-                if (random.nextInt(height / 3) == 0) {
-                    drips.remove(i--);
-                    continue;
-                }
-                d.y += random.nextInt(6);
-                int size = 10 - d.y;
-                fingerOnWindow(new PointF(d.x, d.y), size, pclear);
             }
         }
 
